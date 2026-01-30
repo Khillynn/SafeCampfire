@@ -1,0 +1,18 @@
+{
+  "Group": "dev.hytalemodding",
+  "Name": "SafeCampfire",
+  "Version": "${version}",
+  "Description": "Place a campfire to be safe from aggressive spawns in the area.",
+  "Authors": [
+    {
+      "Name": "Khillynn_Thyme"
+    }
+  ],
+  "Website": "https://legacy.curseforge.com/hytale/mods/safe-campfire",
+  "ServerVersion": "*",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true,
+  "Main": "dev.hytalemodding.SafeCampfire"
+}
