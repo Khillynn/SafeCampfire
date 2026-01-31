@@ -36,29 +36,27 @@ public class OnBreakBlock extends EntityEventSystem<EntityStore, BreakBlockEvent
             World world = Universe.get().getWorld(player.getWorldUuid());
             if (world == null) return;
             ArrayList<Ref<EntityStore>> entitiesAtLocation = new ArrayList<>();
-            getEntitiesAtLocation(world, event.getTargetBlock().getX(), event.getTargetBlock().getY(), event.getTargetBlock().getZ(), entitiesAtLocation::add);
+            getSuppressionEntitiesAtLocation(world, event.getTargetBlock().toVector3d(), entitiesAtLocation::add);
 
             for(Ref<EntityStore> entityRef : entitiesAtLocation) {
-                var suppressionEntity = world.getEntityStore().getStore().getComponent(entityRef, SpawnSuppressionComponent.getComponentType());
-                var entityLocation = store.getComponent(entityRef, TransformComponent.getComponentType());
-                // Remove any SpawnSuppression entities at the location of the campfire that was broken.
-                if (suppressionEntity != null
-                        && entityLocation != null
-                        && entityLocation.getPosition().equals(event.getTargetBlock().toVector3d())){
-                    commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
-                }
+                commandBuffer.removeEntity(entityRef, RemoveReason.REMOVE);
             }
         }
     }
 
-    private void getEntitiesAtLocation(World world, int x, int y, int z, @Nonnull Consumer<Ref<EntityStore>> action) {
-        world.getEntityStore().getStore().forEachChunk(Archetype.of(new ComponentType[]{PrefabCopyableComponent.getComponentType(), TransformComponent.getComponentType()}), (archetypeChunk, commandBuffer) -> {
+    private void getSuppressionEntitiesAtLocation(World world, Vector3d campfireLocation, @Nonnull Consumer<Ref<EntityStore>> action) {
+        var worldStore = world.getEntityStore().getStore();
+        worldStore.forEachChunk(Archetype.of(new ComponentType[]{PrefabCopyableComponent.getComponentType(), TransformComponent.getComponentType()}), (archetypeChunk, commandBuffer) -> {
             int size = archetypeChunk.size();
 
             for(int index = 0; index < size; ++index) {
-                Vector3d vector = ((TransformComponent)archetypeChunk.getComponent(index, TransformComponent.getComponentType())).getPosition();
+                Vector3d entityLocation = ((TransformComponent)archetypeChunk.getComponent(index, TransformComponent.getComponentType())).getPosition();
                 Ref<EntityStore> ref = archetypeChunk.getReferenceTo(index);
-                action.accept(ref);
+                var suppressionEntity = worldStore.getComponent(ref, SpawnSuppressionComponent.getComponentType());
+                // Remove any SpawnSuppression entities at the location of the campfire that was broken.
+                if (suppressionEntity != null && entityLocation.equals(campfireLocation)) {
+                    action.accept(ref);
+                }
             }
         });
     }
